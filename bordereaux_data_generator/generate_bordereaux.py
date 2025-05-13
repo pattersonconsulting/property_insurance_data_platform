@@ -2,9 +2,73 @@ import argparse     # Parse command-line arguments to customize file
 import random       # Random number and choice functions
 import json
 import numpy as np  # Add this for Poisson distribution
+import csv          # CSV file handling
+import os           # File path operations
+import pandas as pd # Excel file handling
 from datetime import datetime, timedelta # For generating realistic dates
 
-def generate_data(num_records):
+def load_config(config_file_path=None):
+    '''
+    Load configuration from a file or use default config
+    '''
+    # If no config file is provided, load the default
+    if config_file_path is None or not os.path.exists(config_file_path):
+        default_config_path = os.path.join(os.path.dirname(__file__), 'default_config.json')
+
+        # Check if default config exists, if not create it
+        if not os.path.exists(default_config_path):
+            print(f"Default config not found at {default_config_path}. Using default built-in configuration.")
+            return get_built_in_default_config()
+        
+        with open(default_config_path, 'r') as f:
+            return json.load(f)
+        
+    # Load the provided config file
+    try:
+        with open(config_file_path, 'r') as f:
+            config = json.load(f)
+            print(f"Loaded configuration from {config_file_path}")
+            return config
+    except Exception as e:
+        print(f"Error loading config file: {e}")
+        print("Using built-in default configuration instead.")
+        return get_built_in_default_config()
+
+def get_built_in_default_config():
+    '''
+    Return a hardcoded default configuration in case no file is available
+    '''
+    return {
+        "output": {
+            "format": "json",
+            "file_name": "claims"
+        },
+        "schema": {
+            "fields": {
+                "policy_number": {"output_name": "policy_number", "type": "string"},
+                "months_insured": {"output_name": "months_insured", "type": "integer"},
+                "has_claims": {"output_name": "has_claims", "type": "boolean"},
+                "items_insured": {"output_name": "items_insured", "type": "integer"},
+                "claim_reference": {"output_name": "claim_reference", "type": "string"},
+                "insured_name": {"output_name": "insured_name", "type": "string"},
+                "policy_start_date": {"output_name": "policy_start_date", "type": "date", "format": "%Y-%m-%d"},
+                "date_of_loss": {"output_name": "date_of_loss", "type": "date", "format": "%Y-%m-%d"},
+                "date_reported": {"output_name": "date_reported", "type": "date", "format": "%Y-%m-%d"},
+                "claim_status": {"output_name": "claim_status", "type": "string"},
+                "loss_type": {"output_name": "loss_type", "type": "string"},
+                "paid_amount": {"output_name": "paid_amount", "type": "decimal", "precision": 2},
+                "reserve_amount": {"output_name": "reserve_amount", "type": "decimal", "precision": 2},
+                "total_incurred": {"output_name": "total_incurred", "type": "decimal", "precision": 2},
+                "claim_propensity": {"output_name": "claim_propensity", "type": "decimal", "precision": 2}
+            }
+        },
+        "data_variability": {
+            "enabled": False,
+            "column_settings": {}
+        }
+    }
+
+def generate_data(num_records, config):
     '''
     Return a Dataframe of num_records simulated insurance claims.
     '''
@@ -171,36 +235,282 @@ def generate_data(num_records):
             "claim_propensity": policy["claim_propensity"]
         })
 
-    # Convert list of dicts into a pandas Dataframe
-    return records
+    # Apply data variability if enabled in the config
+    if config["data_variability"]["enabled"]:
+        records = apply_data_variability(records,config)
 
+    # Map the records according to the schema
+    mapped_records = map_records_to_schema(records, config["schema"]["fields"])
+
+    # Returns mapped_records
+    return mapped_records
+
+def apply_data_variability(records, config):
+    '''
+    Apply data variability settings from the config to the records
+    '''
+    variability_config = config["data_variability"]
+
+    # Make a copy to avoid modifying the original
+    records_copy = []
+
+    for record in records:
+        # Create a new copy of the record
+        new_record = record.copy()
+
+        # Get column-specific settings
+        column_settings = variability_config.get("column_settings", {})
+
+        # Apply variations based on column settings
+        for field_name, field_value in new_record.items():
+            # Check if this field has variations enabled
+            field_settings = column_settings.get(field_name, {})
+
+            if field_settings.get("variation_enabled", False):
+                # Apply missing values based on probability
+                missing_prob = field_settings.get("missing_value_probability", 0)
+                if missing_prob > 0 and random.random() < missing_prob:
+                    new_record[field_name] = "" if isinstance(field_value, str) else None
+                    continue # Skip other variations for this field
+
+                # Apply date format variations
+                if "date_formats" in field_settings and field_value:
+                    try:
+                        # Parse the dat and reformat randomly
+                        date_obj = datetime.strptime(field_value, "%Y-%m-%d")
+                        new_format = random.choice(field_settings["date_formats"])
+                        new_record[field_name] = date_obj.strftime(new_format)
+                    except (ValueError, TypeError):
+                        pass # Keep original if parsing fails
+
+                # Apply currency formatting variations
+                if field_settings.get("format_with_currency", False) and field_value is not None:
+                    if random.random() < 0.5: # 50% chance to add currency symbol
+                        new_record[field_name] = f"${field_value}"
+
+        records_copy.append(new_record)
+
+    return records_copy
+
+def map_records_to_schema(records, schema_fields):
+    '''
+    Map the records to the output schema defined in the config.
+    
+    NOTE: This function currently handles basic field name mapping, but in production scenarios
+    it is possible to encounter numerous variations:
+    - Policy_number, Policy_#, Policy#, Policy_num, PolicyNumber, policyno, etc.
+    - Date_of_loss, LossDate, loss-dt, DateOfLoss, Incident_Date, etc.
+    - Different date formats: YYYY-MM-DD, MM/DD/YYYY, DD-MON-YYYY, etc.
+    
+    Future enhancements to consider:
+    1. Fuzzy matching for similar field names
+    2. Regular expression patterns for field indentification
+    3. Machine learning to detect field mappings
+    4. Validation rules to ensure correct field mapping
+    5. Transformation functions for complex data conversions
+    
+    For now, this relies on exact field name matches as define in the config.
+    '''
+    mapped_records = []
+
+    for record in records:
+        mapped_record = {}
+
+        for field_name, field_config in schema_fields.items():
+            if field_name in record:
+                # Get the output field name from schema
+                output_name = field_config["output_name"]
+
+                # Get the value
+                value = record[field_name]
+
+                # TODO: Add more sophisticated field matching logic here
+                # - Case-insensitive matching
+                # - Partial string matching
+                # - Synonym detection
+
+                # Apple any field-specific transformations based on type
+                if field_config["type"] == "date" and "format" in field_config and value:
+                    # Only apply format if there is a value and it's a string
+                    if isinstance(value, str) and not value.startswith('$'):
+                        try:
+                            # Try to parse with common formats
+                            # TODO: Expand this list based on real TPA data patterns
+                            date_formats = [
+                                "%Y-%m-%d",      # 2024-01-15
+                                "%m/%d/%Y",      # 01/15/2024
+                                "%d-%b-%Y",      # 15-Jan-2024
+                                "%d/%m/%Y",      # 15/01/2024
+                                "%Y%m%d",        # 20240115
+                                "%m-%d-%Y",      # 01-15-2024
+                                "%d.%m.%Y",      # 15.01.2024
+                                "%b %d, %Y",     # Jan 15, 2024
+                                "%B %d, %Y",     # January 15, 2024
+                            ]
+
+                            for fmt in date_formats:
+                                try:
+                                    date_obj = datetime.strptime(value, fmt)
+                                    value = date_obj.strftime(field_config["format"])
+                                    break
+                                except ValueError:
+                                    continue
+                        except Exception:
+                            pass # Keep original if all parsing fails
+                elif field_config["type"] == "decimal" and "precision" in field_config:
+                    if value is not None and not isinstance(value, str):
+                        # Format according to specified precision
+                        value = round(float(value), field_config["precision"])
+                    # TODO: Handle currency strings like "$1,234.56" or "1234.56 USD"
+
+                # Add to the mapped record
+                mapped_record[output_name] = value
+            else:
+                # Field not found in record
+                # TODO: Implement fuzzy matching here
+                # For now, just skip missing fields
+                pass
+
+        mapped_records.append(mapped_record)
+
+    return mapped_records
+
+def save_to_json(records, file_name="claims"):
+    '''
+    Save records to a JSON file
+    '''
+    output_path = f"{file_name}.json"
+    with open(output_path, "w") as f:
+        json.dump(records, f, indent=2)
+
+    return output_path
+
+def save_to_csv(records, config, file_name="claims"):
+    '''
+    Save records to a CSV file
+    '''
+    output_path = f"{file_name}.csv"
+
+    if not records:
+        print("No records to write to CSV")
+        return output_path
+    
+    # Get field names from the first record
+    field_names = list(records[0].keys())
+
+    # Apply column order variations if enabled
+    if config["data_variability"]["enabled"]:
+        column_settings = config["data_variability"].get("column_settings", {})
+        # Check if any column has order variations enabled
+        for settings in column_settings.values():
+            if settings.get("column_order_variations", False):
+                random.shuffle(field_names)
+                break
+
+    with open(output_path, "w", newline="") as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=field_names)
+        writer.writeheader()
+        writer.writerows(records)
+
+    return output_path
+
+def save_to_excel(records, config, file_name="claims"):
+    '''
+    Save records to an Excel file
+    '''
+    output_path = f"{file_name}.xlsx"
+    
+    if not records:
+        print("No records to write to Excel")
+        return output_path
+    
+    # Convert records to DataFrame
+    df = pd.DataFrame(records)
+    
+    # Apply column order variations if enabled
+    if config["data_variability"]["enabled"]:
+        column_settings = config["data_variability"].get("column_settings", {})
+        # Check if any column has order variations enabled
+        for settings in column_settings.values():
+            if settings.get("column_order_variations", False):
+                columns = list(df.columns)
+                random.shuffle(columns)
+                df = df[columns]
+                break
+    
+    # Save to Excel
+    df.to_excel(output_path, index=False)
+    
+    return output_path
+                    
 def parse_args():
     '''
-    Parse command line-line arguments:
-        -c / --count How many records to generate (default: 1000)
-        -h / --help  Built-in help message (auto-generated)
+    Parse command line-line arguments
     '''
     
     parser = argparse.ArgumentParser(
-        description="Generate simulated insurance bordereaux claims data -> export to JSON"
+        description="Generate simulated insurance bordereaux claims data"
     )
 
     parser.add_argument(
-        "-c", "--count",        # Short & long flag forms
-        type=int,               # Convert input to integer
-        default=1000,           # Fallback if user omits the flag
+        "-c", "--count",
+        type=int,
+        default=1000,
         help="Number of records to generate (default: 1000)"
     )
-    return parser.parse_args()  # Returns an object with .count attribute
+    
+    parser.add_argument(
+        "--config",
+        type=str,
+        help="Path to JSON configuration file"
+    )
+    
+    parser.add_argument(
+        "-o", "--output",
+        type=str,
+        choices=["json", "csv", "excel"],
+        help="Output format (overrides config setting if specified)"
+    )
+    
+    parser.add_argument(
+        "-f", "--filename",
+        type=str,
+        help="Output filename without extension (overrides config setting if specified)"
+    )
+    
+    return parser.parse_args()
 
 def main():
-    args = parse_args()             # Read in --count from the user
-    records = generate_data(args.count)  # Generate that many records
+    args = parse_args()
     
-    with open("claims.json", "w") as f:
-            json.dump(records, f, indent=2)
-
-    print(f"Generated claims.json with {len(records)} records.")  # Feedback to terminal
+    # Load configuration
+    config = load_config(args.config)
+    
+    # Override config settings with command line arguments if provided
+    if args.output:
+        config["output"]["format"] = args.output
+    
+    if args.filename:
+        config["output"]["file_name"] = args.filename
+    
+    # Generate the data
+    records = generate_data(args.count, config)
+    
+    # Save the data in the specified format
+    output_format = config["output"]["format"]
+    file_name = config["output"]["file_name"]
+    
+    if output_format == "json":
+        output_path = save_to_json(records, file_name)
+    elif output_format == "csv":
+        output_path = save_to_csv(records, config, file_name)
+    elif output_format == "excel":
+        output_path = save_to_excel(records, config, file_name)
+    else:
+        print(f"Unsupported output format: {output_format}. Defaulting to JSON.")
+        output_path = save_to_json(records, file_name)
+    
+    print(f"Generated {output_path} with {len(records)} records.")
 
 if __name__ == "__main__":
     main()
