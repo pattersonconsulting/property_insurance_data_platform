@@ -75,8 +75,8 @@ def generate_data(num_records, config):
     # End of 2025 as reference for "today"
     today = datetime(2025, 12, 31)
     
-    # First, generate a pool of policies (about 1/3 of the target number of claims)
-    num_policies = max(1, num_records // 3)
+    # First, generate a pool of policies
+    num_policies = max(10, num_records // 2)
     policies = []
     
     for i in range(num_policies):
@@ -181,20 +181,16 @@ def generate_data(num_records, config):
                 "claim_propensity": policy["claim_propensity"]  # Include this for analysis
             })
     
-    # If the run generated fewer claims than requested, top up with random claims
+    # If the run generated fewer claims than requested, add additional random claims
     # (This can happen with Poisson distribution)
     while claim_counter < num_records:
-        # Pick a random policy that already has claims (more realistic)
-        if records:
-            # Get policies that already have claims
-            existing_policy_numbers = [r["policy_number"] for r in records]
-            policy_number = random.choice(existing_policy_numbers)
-            
-            # Find the corresponding policy
-            policy = next(p for p in policies if p["policy_number"] == policy_number)
-        else:
-            # Fallback if no records yet
-            policy = random.choice(policies)
+        # Pick policies weighted by their claim propensity
+        # This respects that some policies are more likely to have claims
+        policy = random.choices(
+            policies,
+            weights=[p["claim_propensity"] for p in policies],
+            k=1
+        )[0]
             
         # Generate a new claim using the same process as above
         claim_reference = f"CLM{1000 + claim_counter}"
@@ -235,12 +231,12 @@ def generate_data(num_records, config):
             "claim_propensity": policy["claim_propensity"]
         })
 
-    # Apply data variability if enabled in the config
-    if config["data_variability"]["enabled"]:
-        records = apply_data_variability(records,config)
-
     # Map the records according to the schema
     mapped_records = map_records_to_schema(records, config["schema"]["fields"])
+
+    # Apply data variability if enabled in the config
+    if config["data_variability"]["enabled"]:
+        mapped_records = apply_data_variability(mapped_records,config)
 
     # Returns mapped_records
     return mapped_records
@@ -271,22 +267,39 @@ def apply_data_variability(records, config):
                 missing_prob = field_settings.get("missing_value_probability", 0)
                 if missing_prob > 0 and random.random() < missing_prob:
                     new_record[field_name] = "" if isinstance(field_value, str) else None
-                    continue # Skip other variations for this field
+                else: # Only apply other variations if the value is not missing
+                    # Apply date format variations
+                    if "date_formats" in field_settings and field_value:
+                        try:
+                            # Attempt to parse the date using common formats
+                            date_obj = None
+                            common_formats = [
+                                "%Y-%m-%d",      # ISO format
+                                "%m/%d/%Y",      # US format  
+                                "%d/%m/%Y",      # European format
+                                "%d-%b-%Y",      # Month name format
+                                "%Y%m%d",        # Compact format
+                            ]
 
-                # Apply date format variations
-                if "date_formats" in field_settings and field_value:
-                    try:
-                        # Parse the dat and reformat randomly
-                        date_obj = datetime.strptime(field_value, "%Y-%m-%d")
-                        new_format = random.choice(field_settings["date_formats"])
-                        new_record[field_name] = date_obj.strftime(new_format)
-                    except (ValueError, TypeError):
-                        pass # Keep original if parsing fails
+                            # Try each format until one works
+                            for fmt in common_formats:
+                                try:
+                                    date_obj = datetime.strptime(field_value, fmt)
+                                    break
+                                except ValueError:
+                                    continue
 
-                # Apply currency formatting variations
-                if field_settings.get("format_with_currency", False) and field_value is not None:
-                    if random.random() < 0.5: # 50% chance to add currency symbol
-                        new_record[field_name] = f"${field_value}"
+                            # If the date is parsed, apple random format
+                            if date_obj:
+                                new_format = random.choice(field_settings["date_formats"])
+                                new_record[field_name] = date_obj.strftime(new_format)
+                        except Exception:
+                            pass # Keep original if parsing fails
+
+                    # Apply currency formatting variations
+                    if field_settings.get("format_with_currency", False) and field_value is not None:
+                        if random.random() < 0.5: # 50% chance to add currency symbol
+                            new_record[field_name] = f"${field_value}"
 
         records_copy.append(new_record)
 
