@@ -1,0 +1,77 @@
+{
+  "output": {
+    "format": "csv",
+    "file_name": "tpa1_claims"
+  },
+  "schema": {
+    "fields": {
+      "policy_number": {
+        "output_name": "policy_ref",
+        "type": "string"
+      },
+      "months_insured": {
+        "output_name": "insured_months",
+        "type": "integer"
+      },
+      "has_claims": {
+        "output_name": "claim_history",
+        "type": "boolean"
+      },
+      "items_insured": {
+        "output_name": "insured_items_count",
+        "type": "integer"
+      },
+      "claim_reference": {
+        "output_name": "claim_id",
+        "type": "string"
+      },
+      "insured_name": {
+        "output_name": "business_name",
+        "type": "string"
+      },
+      "policy_start_date": {
+        "output_name": "inception_date",
+        "type": "date",
+        "format": "%m/%d/%Y"
+      },
+      "date_of_loss": {
+        "output_name": "loss_date",
+        "type": "date",
+        "format": "%m/%d/%Y"
+      },
+      "date_reported": {
+        "output_name": "reported_date",
+        "type": "date",
+        "format": "%m/%d/%Y"
+      },
+      "claim_status": {
+        "output_name": "status",
+        "type": "string"
+      },
+      "loss_type": {
+        "output_name": "loss_category",
+        "type": "string"
+      },
+      "paid_amount": {
+        "output_name": "amount_paid",
+        "type": "decimal",
+        "precision": 2
+      },
+      "reserve_amount": {
+        "output_name": "reserve",
+        "type": "decimal",
+        "precision": 2
+      },
+      "total_incurred": {
+        "output_name": "total_cost",
+        "type": "decimal",
+        "precision": 2
+      },
+      "claim_propensity": {
+        "output_name": "risk_factor",
+        "type": "decimal",
+        "precision": 2
+      }
+    }
+  }
+}

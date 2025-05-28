@@ -1,0 +1,86 @@
+{
+  "output": {
+    "format": "json",
+    "file_name": "claims"
+  },
+  "schema": {
+    "fields": {
+      "policy_number": {
+        "output_name": "policy_number",
+        "type": "string"
+      },
+      "months_insured": {
+        "output_name": "months_insured",
+        "type": "integer"
+      },
+      "has_claims": {
+        "output_name": "has_claims",
+        "type": "boolean"
+      },
+      "items_insured": {
+        "output_name": "items_insured",
+        "type": "integer"
+      },
+      "claim_reference": {
+        "output_name": "claim_reference",
+        "type": "string"
+      },
+      "insured_name": {
+        "output_name": "insured_name",
+        "type": "string"
+      },
+      "policy_start_date": {
+        "output_name": "policy_start_date",
+        "type": "date",
+        "format": "%Y-%m-%d"
+      },
+      "date_of_loss": {
+        "output_name": "date_of_loss",
+        "type": "date",
+        "format": "%Y-%m-%d"
+      },
+      "date_reported": {
+        "output_name": "date_reported",
+        "type": "date",
+        "format": "%Y-%m-%d"
+      },
+      "claim_status": {
+        "output_name": "claim_status",
+        "type": "string"
+      },
+      "loss_type": {
+        "output_name": "loss_type",
+        "type": "string"
+      },
+      "paid_amount": {
+        "output_name": "paid_amount",
+        "type": "decimal",
+        "precision": 2
+      },
+      "reserve_amount": {
+        "output_name": "reserve_amount",
+        "type": "decimal",
+        "precision": 2
+      },
+      "total_incurred": {
+        "output_name": "total_incurred",
+        "type": "decimal",
+        "precision": 2
+      },
+      "claim_propensity": {
+        "output_name": "claim_propensity",
+        "type": "decimal",
+        "precision": 2
+      }
+    }
+  },
+  "data_variability": {
+    "enabled": false,
+    "column_settings": {
+      "policy_number": {"variation_enabled": false},
+      "date_of_loss": {"variation_enabled": false, "date_formats": ["%Y-%m-%d", "%m/%d/%Y"]},
+      "date_reported": {"variation_enabled": false, "date_formats": ["%Y-%m-%d", "%m/%d/%Y"]},
+      "paid_amount": {"variation_enabled": false, "format_with_currency": false}
+    }
+  }
+}

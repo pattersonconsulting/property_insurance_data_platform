@@ -196,7 +196,7 @@ def generate_data(num_records, config):
         claim_reference = f"CLM{1000 + claim_counter}"
         claim_counter += 1
         
-        # Generate claim details (repeat of code above)
+        # Generate claim details
         policy_start = policy["policy_start"]
         date_of_loss = policy_start + timedelta(days=random.randint(1, (today - policy_start).days))
         reporting_delay = min(30, (today - date_of_loss).days)
@@ -235,7 +235,7 @@ def generate_data(num_records, config):
     mapped_records = map_records_to_schema(records, config["schema"]["fields"])
 
     # Apply data variability if enabled in the config
-    if config["data_variability"]["enabled"]:
+    if config.get("data_variability", {}).get("enabled", False):
         mapped_records = apply_data_variability(mapped_records,config)
 
     # Returns mapped_records
@@ -289,7 +289,7 @@ def apply_data_variability(records, config):
                                 except ValueError:
                                     continue
 
-                            # If the date is parsed, apple random format
+                            # If the date is parsed, apply random format
                             if date_obj:
                                 new_format = random.choice(field_settings["date_formats"])
                                 new_record[field_name] = date_obj.strftime(new_format)
@@ -342,7 +342,7 @@ def map_records_to_schema(records, schema_fields):
                 # - Partial string matching
                 # - Synonym detection
 
-                # Apple any field-specific transformations based on type
+                # Apply any field-specific transformations based on type
                 if field_config["type"] == "date" and "format" in field_config and value:
                     # Only apply format if there is a value and it's a string
                     if isinstance(value, str) and not value.startswith('$'):
@@ -412,7 +412,7 @@ def save_to_csv(records, config, file_name="claims"):
     field_names = list(records[0].keys())
 
     # Apply column order variations if enabled
-    if config["data_variability"]["enabled"]:
+    if config.get("data_variability", {}).get("enabled", False):
         column_settings = config["data_variability"].get("column_settings", {})
         # Check if any column has order variations enabled
         for settings in column_settings.values():
@@ -441,7 +441,7 @@ def save_to_excel(records, config, file_name="claims"):
     df = pd.DataFrame(records)
     
     # Apply column order variations if enabled
-    if config["data_variability"]["enabled"]:
+    if config.get("data_variability", {}).get("enabled", False):
         column_settings = config["data_variability"].get("column_settings", {})
         # Check if any column has order variations enabled
         for settings in column_settings.values():
