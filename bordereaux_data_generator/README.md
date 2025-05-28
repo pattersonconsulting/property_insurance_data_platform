@@ -23,7 +23,7 @@ Insurance companies process thousands of bordereaux reports - detailed listings 
 - **Configurable Schema**: Use JSON configuration files to define custom output schemas
 - **Multiple Output Formats**: Export to JSON, CSV, or Excel
 - **TPA Simulation**: Simulate different Third-Party Administrator data formats
-- **Data Variability**: Optional realistic data inconsistencies (missing values, format variations)
+- **Data Variability**: Currently disabled by default (command-line implementation coming soon)
 - **Command-line Flexibility**: Override configuration settings via command-line arguments
 
 ## Coming Soon
@@ -34,6 +34,7 @@ Insurance companies process thousands of bordereaux reports - detailed listings 
 - Enhanced data quality controls
 - Comprehensive configuration guide
 - Performance optimizations for large datasets
+- Command-line flags for data variability (--add-variability, --variability-level)
 
 ## Sample Output
 

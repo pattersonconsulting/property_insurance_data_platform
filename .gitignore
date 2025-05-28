@@ -175,16 +175,13 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-# Generated output files from bordereaux_data_generator
-claims.json
-claims.csv
-claims.xlsx
-tpa*.json
-tpa*.csv
-tpa*.xlsx
-*.json
-*.csv
-*.xlsx
+# Generated output files (not config files!)
+claims_data*.json
+claims_data*.csv
+claims_data*.xlsx
+tpa*_claims.json
+tpa*_claims.csv
+tpa*_claims.xlsx
 
 # VS Code history
 .history/
