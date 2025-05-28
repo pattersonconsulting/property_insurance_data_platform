@@ -42,7 +42,52 @@
 			"reserve": "reserve_amount",
 			"total_cost": "total_incurred",
 			"risk_factor": "claim_propensity"
-		}
+		},
+
+
+	"company-b":
+	
+	
+		{
+			"PolicyID": "policy_number",
+			"MonthsCovered": "months_insured",
+			"HasClaims": "has_claims",
+			"ItemsInsured": "items_insured",
+			"ClaimNumber": "claim_reference",
+			"CompanyName": "insured_name",
+			"PolicyStartDate": "policy_start_date",
+			"LossDate": "date_of_loss",
+			"ReportedDate": "date_reported",
+			"ClaimStatus": "claim_status",
+			"LossType": "loss_type",
+			"PaidAmount": "paid_amount",
+			"ReserveAmount": "reserve_amount",
+			"TotalIncurred": "total_incurred",
+			"ClaimFrequency": "claim_propensity"
+		},
+
+
+	"company-c":
+	
+	
+		{
+			"policy_number": "policy_number",
+			"coverage_period_months": "months_insured",
+			"claims_indicator": "has_claims",
+			"number_of_items": "items_insured",
+			"CLAIM_REF": "claim_reference",
+			"INSURED_BUSINESS": "insured_name",
+			"policy_inception_date": "policy_start_date",
+			"date_of_incident": "date_of_loss",
+			"notification_date": "date_reported",
+			"current_status": "claim_status",
+			"PERIL": "loss_type",
+			"payments_to_date": "paid_amount",
+			"outstanding_reserve": "reserve_amount",
+			"TOTAL_CLAIM_COST": "total_incurred",
+			"risk_score": "claim_propensity"
+		}	
+
 	
 }	
 
