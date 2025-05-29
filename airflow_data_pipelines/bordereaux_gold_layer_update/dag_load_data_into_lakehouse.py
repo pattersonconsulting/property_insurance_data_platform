@@ -17,7 +17,7 @@ sql_endpoint_name = "/sql/1.0/warehouses/17550ddda2a96e4e"
 
 
 with DAG(
-    'dbx_connection_text',
+    'dbx_load_data_into_dbx_lakehouse',
     default_args={
         "depends_on_past": False,
         "retries": 1,
@@ -28,11 +28,11 @@ with DAG(
     schedule=timedelta(days=1),
     start_date=datetime(2021, 1, 1),
     catchup=False,
-    tags=["example"],
+    tags=["s3", "bordereaux", "silver"],
 
 ) as dag:
     test_dbx_data_task = DatabricksSqlOperator(
-        task_id="test_dbx_connection_task",
+        task_id="dbx_sql_data_insert_task",
         
         
         databricks_conn_id="databricks_connection",
