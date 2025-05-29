@@ -1,0 +1,6 @@
+policy_number,months_insured,has_claims,items_insured,claim_reference,insured_name,policy_start_date,date_of_loss,date_reported,claim_status,loss_type,paid_amount,reserve_amount,total_incurred,claim_propensity
+POL1000,113,True,7,CLM1000,Company 1000,2023-05-08,2024-10-02,2024-10-03,Closed,Property Damage,6672.27,0.0,6672.27,0.5
+POL1001,92,True,9,CLM1001,Company 1001,2023-02-13,2025-08-11,2025-08-13,Open,Business Interruption,697.9,7325.7,8023.6,1.2
+POL1005,26,True,1,CLM1002,Company 1005,2024-03-02,2025-08-12,2025-08-14,Closed,Theft,6015.66,0.0,6015.66,0.1
+POL1005,26,True,1,CLM1003,Company 1005,2024-03-02,2024-04-14,2024-04-22,Closed,Fire,27446.59,0.0,27446.59,0.1
+POL1008,88,True,2,CLM1004,Company 1008,2025-05-31,2025-06-24,2025-07-05,Open,Theft,14381.78,8595.47,22977.25,1.2
