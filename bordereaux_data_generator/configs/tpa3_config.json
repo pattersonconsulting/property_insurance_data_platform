@@ -40,6 +40,11 @@
         "output_name": "current_status",
         "type": "string"
       },
+      "claim_close_date": {
+        "output_name": "date_closed",
+        "type": "date",
+        "format": "%d/%m/%Y"
+      },
       "total_incurred": {
         "output_name": "TOTAL_CLAIM_COST",
         "type": "decimal",

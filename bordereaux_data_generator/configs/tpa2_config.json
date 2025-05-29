@@ -21,6 +21,11 @@
         "output_name": "ClaimStatus",
         "type": "string"
       },
+      "claim_close_date": {
+        "output_name": "CloseDate",
+        "type": "date",
+        "format": "%Y-%m-%d"
+      },
       "date_of_loss": {
         "output_name": "LossDate",
         "type": "date",
