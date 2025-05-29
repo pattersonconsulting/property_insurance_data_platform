@@ -13,8 +13,8 @@ def load_config(config_file_path=None):
     '''
     # If no config file is provided, load the default
     if config_file_path is None or not os.path.exists(config_file_path):
-        default_config_path = os.path.join(os.path.dirname(__file__), 'default_config.json')
-
+        default_config_path = os.path.join(os.path.dirname(__file__), 'configs', 'default_config.json')
+        
         # Check if default config exists, if not create it
         if not os.path.exists(default_config_path):
             print(f"Default config not found at {default_config_path}. Using default built-in configuration.")
@@ -392,7 +392,7 @@ def save_to_json(records, file_name="claims"):
     '''
     Save records to a JSON file
     '''
-    output_path = f"{file_name}.json"
+    output_path = os.path.join("output", f"{file_name}.json")
     with open(output_path, "w") as f:
         json.dump(records, f, indent=2)
 
@@ -402,7 +402,7 @@ def save_to_csv(records, config, file_name="claims"):
     '''
     Save records to a CSV file
     '''
-    output_path = f"{file_name}.csv"
+    output_path = os.path.join("output", f"{file_name}.csv")
 
     if not records:
         print("No records to write to CSV")
@@ -431,15 +431,15 @@ def save_to_excel(records, config, file_name="claims"):
     '''
     Save records to an Excel file
     '''
-    output_path = f"{file_name}.xlsx"
-    
+    output_path = os.path.join("output", f"{file_name}.xlsx")
+   
     if not records:
         print("No records to write to Excel")
         return output_path
-    
+   
     # Convert records to DataFrame
     df = pd.DataFrame(records)
-    
+   
     # Apply column order variations if enabled
     if config.get("data_variability", {}).get("enabled", False):
         column_settings = config["data_variability"].get("column_settings", {})
@@ -450,10 +450,18 @@ def save_to_excel(records, config, file_name="claims"):
                 random.shuffle(columns)
                 df = df[columns]
                 break
-    
-    # Save to Excel
-    df.to_excel(output_path, index=False)
-    
+   
+    # Save to Excel with auto-fit columns
+    with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False)
+        
+        # Auto-fit columns
+        worksheet = writer.sheets['Sheet1']
+        for column in df:
+            column_length = max(df[column].astype(str).map(len).max(), len(column))
+            col_idx = df.columns.get_loc(column)
+            worksheet.column_dimensions[worksheet.cell(row=1, column=col_idx+1).column_letter].width = column_length + 2
+   
     return output_path
                     
 def parse_args():
@@ -498,6 +506,10 @@ def main():
     
     # Load configuration
     config = load_config(args.config)
+
+    # Ensure output directory exists
+    if not os.path.exists("output"):
+        os.makedirs("output")
     
     # Override config settings with command line arguments if provided
     if args.output:

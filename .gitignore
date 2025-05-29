@@ -173,7 +173,10 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-# Generated output files (not config files!)
+# Output folder
+output/
+
+# Generated output files (not config files)
 claims_data*.json
 claims_data*.csv
 claims_data*.xlsx
