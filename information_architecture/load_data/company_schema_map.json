@@ -1,7 +1,9 @@
 
 {
 	"template":
-	
+	{
+		"date_format": "%m/%d/%Y",
+		"schema":
 	
 		{
 			"policy_number": "policy_number",
@@ -19,14 +21,18 @@
 			"reserve_amount": "reserve_amount",
 			"total_incurred": "total_incurred",
 			"claim_propensity": "claim_propensity"
-		},
+		}
+	},
 	
 
 
 	"company-a":
-	
+	{
+		"date_format": "%m/%d/%Y",
+		"schema":
 	
 		{
+
 			"policy_ref": "policy_number",
 			"insured_months": "months_insured",
 			"claim_history": "has_claims",
@@ -42,13 +48,16 @@
 			"reserve": "reserve_amount",
 			"total_cost": "total_incurred",
 			"risk_factor": "claim_propensity"
-		},
+		}
+	},
 
 
 	"company-b":
-	
-	
+	{
+		"date_format": "%Y-%m-%d",
+		"schema":	
 		{
+
 			"PolicyID": "policy_number",
 			"MonthsCovered": "months_insured",
 			"HasClaims": "has_claims",
@@ -64,11 +73,14 @@
 			"ReserveAmount": "reserve_amount",
 			"TotalIncurred": "total_incurred",
 			"ClaimFrequency": "claim_propensity"
-		},
+		}
+	},
 
 
 	"company-c":
-	
+	{
+		"date_format": "%d/%m/%Y",
+		"schema":
 	
 		{
 			"policy_number": "policy_number",
@@ -87,6 +99,7 @@
 			"TOTAL_CLAIM_COST": "total_incurred",
 			"risk_score": "claim_propensity"
 		}	
+	}
 
 	
 }	

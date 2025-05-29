@@ -24,3 +24,4 @@ from
     )
 FILEFORMAT = CSV FORMAT_OPTIONS('sep' = ',', 'header' = 'true', 'inferSchema' = 'true')
 COPY_OPTIONS ('force' = 'true', 'mergeSchema' = 'true')
+
