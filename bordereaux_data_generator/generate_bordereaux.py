@@ -55,6 +55,7 @@ def get_built_in_default_config():
                 "date_of_loss": {"output_name": "date_of_loss", "type": "date", "format": "%Y-%m-%d"},
                 "date_reported": {"output_name": "date_reported", "type": "date", "format": "%Y-%m-%d"},
                 "claim_status": {"output_name": "claim_status", "type": "string"},
+                "claim_close_date": {"output_name": "claim_close_date", "type": "date", "format": "%Y-%m-%d"},
                 "loss_type": {"output_name": "loss_type", "type": "string"},
                 "paid_amount": {"output_name": "paid_amount", "type": "decimal", "precision": 2},
                 "reserve_amount": {"output_name": "reserve_amount", "type": "decimal", "precision": 2},
@@ -72,8 +73,8 @@ def generate_data(num_records, config):
     '''
     Return a Dataframe of num_records simulated insurance claims.
     '''
-    # End of 2025 as reference for "today"
-    today = datetime(2025, 12, 31)
+    # Reference date is date program is run
+    today = datetime.now()
     
     # First, generate a pool of policies
     num_policies = max(10, num_records // 2)
@@ -135,12 +136,59 @@ def generate_data(num_records, config):
             policy_start = policy["policy_start"]
             date_of_loss = policy_start + timedelta(days=random.randint(1, (today - policy_start).days))
             
-            # Date reported: between date of loss and reference date (usually within 30 days)
-            reporting_delay = min(30, (today - date_of_loss).days)
-            date_reported = date_of_loss + timedelta(days=random.randint(1, max(1, reporting_delay)))
+            # Date reported: Most claims reported quickly, but some can be very delayed
+            days_available = (today - date_of_loss).days
+            
+            # Weighted reporting delay distribution
+            if days_available >= 365:
+                # All delay options available
+                delay_ranges = [
+                    random.randint(1, 30),      # Quick reporting (1-30 days)
+                    random.randint(31, 90),     # Normal delay (31-90 days)  
+                    random.randint(91, 180),    # Significant delay (91-180 days)
+                    random.randint(181, 365)    # Very late discovery (181-365 days)
+                ]
+                weights = [0.87, 0.08, 0.04, 0.01]
+            elif days_available >= 180:
+                # First 3 options available
+                delay_ranges = [
+                    random.randint(1, 30),
+                    random.randint(31, 90),
+                    random.randint(91, min(180, days_available))
+                ]
+                weights = [0.87, 0.08, 0.05]  # Redistribute the 1% into other categories
+            elif days_available >= 90:
+                # First 2 options available
+                delay_ranges = [
+                    random.randint(1, 30),
+                    random.randint(31, min(90, days_available))
+                ]
+                weights = [0.87, 0.13]  # Redistribute into normal delay
+            else:
+                # Only quick reporting available
+                max_delay = max(1, min(30, days_available))
+                delay_ranges = [random.randint(1, max_delay)]
+                weights = [1.0]
+            
+            reporting_delay = random.choices(delay_ranges, weights=weights, k=1)[0]
+            date_reported = date_of_loss + timedelta(days=reporting_delay)
             
             # Claim status: weighted random choice
             claim_status = random.choices(claim_statuses, weights=status_weights, k=1)[0]
+
+            # Generate claim close date for closed claims
+            if claim_status == "Closed":
+                # Claims can close anywhere from 7 days to 2 years after reporting
+                days_to_close = random.choices(
+                    [random.randint(7, 30),      # Quick resolution (7-30 days)
+                    random.randint(31, 90),     # Normal resolution (1-3 months)
+                    random.randint(91, 365),    # Slow resolution (3-12 months)
+                    random.randint(366, 730)],  # Very slow (1-2 years)
+                    weights=[0.3, 0.4, 0.25, 0.05]  # 30% quick, 40% normal, 25% slow, 5% very slow
+                )[0]
+                claim_close_date = date_reported + timedelta(days=days_to_close)
+            else:
+                claim_close_date = None  # Open claims don't have a close date
             
             # Loss type
             loss_type = random.choice(loss_types)
@@ -174,6 +222,7 @@ def generate_data(num_records, config):
                 "date_of_loss": date_of_loss.strftime("%Y-%m-%d"),
                 "date_reported": date_reported.strftime("%Y-%m-%d"),
                 "claim_status": claim_status,
+                "claim_close_date": claim_close_date.strftime("%Y-%m-%d") if claim_close_date else None,
                 "loss_type": loss_type,
                 "paid_amount": paid_amount,
                 "reserve_amount": reserve_amount,
@@ -199,9 +248,56 @@ def generate_data(num_records, config):
         # Generate claim details
         policy_start = policy["policy_start"]
         date_of_loss = policy_start + timedelta(days=random.randint(1, (today - policy_start).days))
-        reporting_delay = min(30, (today - date_of_loss).days)
-        date_reported = date_of_loss + timedelta(days=random.randint(1, max(1, reporting_delay)))
+        days_available = (today - date_of_loss).days
+        
+        # Weighted reporting delay distribution
+        if days_available >= 365:
+            # All delay options available
+            delay_ranges = [
+                random.randint(1, 30),      # Quick reporting (1-30 days)
+                random.randint(31, 90),     # Normal delay (31-90 days)  
+                random.randint(91, 180),    # Significant delay (91-180 days)
+                random.randint(181, 365)    # Very late discovery (181-365 days)
+            ]
+            weights = [0.87, 0.08, 0.04, 0.01]
+        elif days_available >= 180:
+            # First 3 options available
+            delay_ranges = [
+                random.randint(1, 30),
+                random.randint(31, 90),
+                random.randint(91, min(180, days_available))
+            ]
+            weights = [0.87, 0.08, 0.05]  # Redistribute the 1% into other categories
+        elif days_available >= 90:
+            # First 2 options available
+            delay_ranges = [
+                random.randint(1, 30),
+                random.randint(31, min(90, days_available))
+            ]
+            weights = [0.87, 0.13]  # Redistribute into normal delay
+        else:
+            # Only quick reporting available
+            max_delay = max(1, min(30, days_available))
+            delay_ranges = [random.randint(1, max_delay)]
+            weights = [1.0]
+        
+        reporting_delay = random.choices(delay_ranges, weights=weights, k=1)[0]
+        date_reported = date_of_loss + timedelta(days=reporting_delay)
         claim_status = random.choices(claim_statuses, weights=status_weights, k=1)[0]
+        
+        # Generate claim close date for closed claims
+        if claim_status == "Closed":
+            days_to_close = random.choices(
+                [random.randint(7, 30),
+                random.randint(31, 90),
+                random.randint(91, 365),
+                random.randint(366, 730)],
+                weights=[0.3, 0.4, 0.25, 0.05]
+            )[0]
+            claim_close_date = date_reported + timedelta(days=days_to_close)
+        else:
+            claim_close_date = None
+        
         loss_type = random.choice(loss_types)
         total_incurred = round(random.gammavariate(2, 10000), 2)
         
@@ -224,6 +320,7 @@ def generate_data(num_records, config):
             "date_of_loss": date_of_loss.strftime("%Y-%m-%d"),
             "date_reported": date_reported.strftime("%Y-%m-%d"),
             "claim_status": claim_status,
+            "claim_close_date": claim_close_date.strftime("%Y-%m-%d") if claim_close_date else None,
             "loss_type": loss_type,
             "paid_amount": paid_amount,
             "reserve_amount": reserve_amount,
