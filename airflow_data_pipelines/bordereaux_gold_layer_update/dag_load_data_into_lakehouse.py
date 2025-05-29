@@ -33,11 +33,8 @@ with DAG(
 ) as dag:
     test_dbx_data_task = DatabricksSqlOperator(
         task_id="dbx_sql_data_insert_task",
-        
-        
         databricks_conn_id="databricks_connection",
         http_path=sql_endpoint_name,
-
         sql="load_s3_bordereaux_into_dbx_airflow.sql"
 
     )

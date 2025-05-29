@@ -131,8 +131,6 @@ def list_files(bucket_name, prefix):
 
 def merge_incoming_s3_tpa_schemas():
 
-    #conf_file_bucket_dir = bucket + "/" + subdirectory
-
     schema_conf_file_string = load_s3_file_as_text(bucket, subdirectory + schema_conf_file)
 
     data_company_schemas = json.loads( schema_conf_file_string )
@@ -155,11 +153,7 @@ def merge_incoming_s3_tpa_schemas():
 
             print("\t" + filename)
 
-            
-
             df_tmp = load_s3_file_to_dataframe(bucket, full_subdir + filename)
-
-            #print(df_tmp)
 
             print("Convert schema to standard internal schema: " + filename)
 
