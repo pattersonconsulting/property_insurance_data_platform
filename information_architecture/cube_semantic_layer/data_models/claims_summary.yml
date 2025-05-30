@@ -1,0 +1,111 @@
+cubes:
+  - name: claims_summary_current
+    sql: SELECT * FROM claims_workspace.bronze.bordereaux_data
+    title: Claims Summary at Current
+    description: A comprehensive snapshot of all active claims at any specific point in time, showing status, reserves, and key metrics across the entire claims portfolio.
+    joins: []
+    dimensions:
+    - name: policy_number
+      sql: "{CUBE}.policy_number"
+      type: string
+      description: The policy number of the claims record.
+
+    - name: months_insured
+      sql: "{CUBE}.months_insured"
+      type: number
+      description: The number of months the customer has been insured.
+
+    - name: has_claims
+      sql: "{CUBE}.has_claims"
+      type: boolean
+      description: Whether the policy has any associated claims.
+
+    - name: items_insured
+      sql: "{CUBE}.items_insured"
+      type: number
+      description: Number of items insured under the policy.
+
+    - name: claim_reference
+      sql: "{CUBE}.claim_reference"
+      type: string
+      description: A unique reference for the claim.
+
+    - name: insured_name
+      sql: "{CUBE}.insured_name"
+      type: string
+      description: Name of the insured party.
+
+    - name: policy_start_date
+      sql: "{CUBE}.policy_start_date"
+      type: time
+      description: Start date of the policy coverage.
+
+    - name: date_of_loss
+      sql: "{CUBE}.date_of_loss"
+      type: time
+      description: The date on which the loss occurred.
+
+    - name: date_reported
+      sql: "{CUBE}.date_reported"
+      type: time
+      description: The date the loss was reported.
+
+    - name: claim_status
+      sql: "{CUBE}.claim_status"
+      type: string
+      description: Status of the claim (e.g., Open, Closed, Reopened).
+
+    - name: loss_type
+      sql: "{CUBE}.loss_type"
+      type: string
+      description: Type of loss associated with the claim.
+
+    - name: paid_amount
+      sql: "{CUBE}.paid_amount"
+      type: number
+      description: Amount paid on the claim to date.
+
+    - name: reserve_amount
+      sql: "{CUBE}.reserve_amount"
+      type: number
+      description: Reserve amount set aside for future payments.
+
+    - name: total_incurred
+      sql: "{CUBE}.total_incurred"
+      type: number
+      description: Total cost incurred for the claim (paid + reserve).
+
+    - name: claim_propensity
+      sql: "{CUBE}.claim_propensity"
+      type: number
+      description: Model-driven score estimating the likelihood of a claim.
+
+    measures:
+      - name: count
+        type: count
+
+      - name: total_claims
+        type: count
+      
+      - name: open_claims
+        type: count
+        filters:
+          - sql: "{CUBE}.claim_status != 'Closed'"
+
+      - name: total_reserves
+        sql: "reserve_acount"
+        type: sum
+        filters:
+          - sql: "{CUBE}.claim_status != 'Closed'"
+
+      - name: total_paid
+        sql: "paid_amount"
+        type: sum
+
+      - name: total_incurred_all
+        sql: "total_incurred"
+        type: sum
+
+      - name: average_claim_size
+        sql: "{total_incurred} / {total_claims}"
+        type: number        
