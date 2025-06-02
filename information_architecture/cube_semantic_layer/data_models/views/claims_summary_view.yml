@@ -1,0 +1,12 @@
+views:
+  - name: claims_summary
+
+    cubes:
+      - join_path: claims_summary_current
+        includes:
+          - total_claims
+          - open_claims
+          - total_reserves
+          - total_paid
+          - total_incurred_all
+          - average_claim_size

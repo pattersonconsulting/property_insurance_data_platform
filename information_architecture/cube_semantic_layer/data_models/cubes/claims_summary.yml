@@ -93,7 +93,7 @@ cubes:
           - sql: "{CUBE}.claim_status != 'Closed'"
 
       - name: total_reserves
-        sql: "reserve_acount"
+        sql: "{CUBE.reserve_amount}"
         type: sum
         filters:
           - sql: "{CUBE}.claim_status != 'Closed'"
@@ -107,5 +107,5 @@ cubes:
         type: sum
 
       - name: average_claim_size
-        sql: "{total_incurred} / {total_claims}"
+        sql: "{CUBE.total_incurred_all} / {CUBE.total_claims}"
         type: number        
