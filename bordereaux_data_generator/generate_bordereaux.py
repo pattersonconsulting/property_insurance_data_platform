@@ -187,6 +187,14 @@ def generate_data(num_records, config):
                     weights=[0.3, 0.4, 0.25, 0.05]  # 30% quick, 40% normal, 25% slow, 5% very slow
                 )[0]
                 claim_close_date = date_reported + timedelta(days=days_to_close)
+                # If close date would be in the future, randomly decide to close as of today, or leave it 
+                # open - this prevents a bunch of future close dates all piling up on whatever day the program is ran
+                if claim_close_date > today:
+                    if random.random() < 0.3: # 30% chance to close today
+                        claim_close_date = today
+                    else: # 70% chance to remain open
+                        claim_status = "Open"
+                        claim_close_date = None
             else:
                 claim_close_date = None  # Open claims don't have a close date
             
@@ -295,6 +303,14 @@ def generate_data(num_records, config):
                 weights=[0.3, 0.4, 0.25, 0.05]
             )[0]
             claim_close_date = date_reported + timedelta(days=days_to_close)
+            # If close date would be in the future, randomly decide to close as of today, or leave it 
+            # open - this prevents a bunch of future close dates all piling up on whatever day the program is ran
+            if claim_close_date > today:
+                    if random.random() < 0.3: # 30% chance to close today
+                        claim_close_date = today
+                    else: # 70% chance to remain open
+                        claim_status = "Open"
+                        claim_close_date = None
         else:
             claim_close_date = None
         
