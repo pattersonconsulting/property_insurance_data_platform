@@ -22,6 +22,10 @@
         "output_name": "CLAIM_REF",
         "type": "string"
       },
+      "line_of_business": {
+        "output_name": "LINE_OF_BUSINESS",
+        "type": "string"
+      },
       "date_of_loss": {
         "output_name": "date_of_incident",
         "type": "date",

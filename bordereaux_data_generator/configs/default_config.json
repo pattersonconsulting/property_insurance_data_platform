@@ -21,6 +21,10 @@
         "output_name": "items_insured",
         "type": "integer"
       },
+      "line_of_business": {
+        "output_name": "line_of_business",
+        "type": "string"
+      },
       "claim_reference": {
         "output_name": "claim_reference",
         "type": "string"

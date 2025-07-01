@@ -17,6 +17,10 @@
         "output_name": "CompanyName",
         "type": "string"
       },
+      "line_of_business": {
+        "output_name": "LineOfBusiness",
+        "type": "string"
+      },
       "claim_status": {
         "output_name": "ClaimStatus",
         "type": "string"

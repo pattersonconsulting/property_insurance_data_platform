@@ -49,6 +49,7 @@ def get_built_in_default_config():
                 "months_insured": {"output_name": "months_insured", "type": "integer"},
                 "has_claims": {"output_name": "has_claims", "type": "boolean"},
                 "items_insured": {"output_name": "items_insured", "type": "integer"},
+                "line_of_business": {"output_name": "line_of_business", "type": "string"},
                 "claim_reference": {"output_name": "claim_reference", "type": "string"},
                 "insured_name": {"output_name": "insured_name", "type": "string"},
                 "policy_start_date": {"output_name": "policy_start_date", "type": "date", "format": "%Y-%m-%d"},
@@ -93,11 +94,23 @@ def generate_data(num_records, config):
             weights=[0.7, 0.2, 0.1],  # 70% low, 20% medium, 10% high
             k=1
         )[0]
+
+        # Assign line of business with realistic market distribution
+        line_of_business = random.choices(
+                ["Homeowners", "Auto Insurance", "Business Insurance", "Commercial Auto", 
+                "General Liability", "Workers Compensation", "Professional Liability", 
+                "Renters Insurance", "Life Insurance", "Flood", "Rental Property", 
+                "Umbrella/Excess Liability", "Commercial Rental Property", "Cyber Insurance", 
+                "E&O", "Inland Marine Insurance", "Boat Insurance"],
+            weights=[0.30, 0.22, 0.16, 0.08, 0.07, 0.06, 0.04, 0.03, 0.03, 0.02, 0.02, 
+                    0.02, 0.01, 0.01, 0.01, 0.01, 0.01]
+        )[0]
         
         policies.append({
             "policy_number": policy_number,
             "policy_start": policy_start,
             "months_insured": months_insured,
+            "line_of_business": line_of_business,
             "items_insured": items_insured,
             "claim_propensity": claim_propensity,
             "insured_name": f"Company {1000 + i}"  # Simple company name
@@ -222,6 +235,7 @@ def generate_data(num_records, config):
                 "months_insured": policy["months_insured"],
                 "has_claims": True,  # Since we're generating claims
                 "items_insured": policy["items_insured"],
+                "line_of_business": policy["line_of_business"],
                 
                 # Bordereaux-specific fields
                 "claim_reference": claim_reference,
@@ -330,6 +344,7 @@ def generate_data(num_records, config):
             "months_insured": policy["months_insured"],
             "has_claims": True,
             "items_insured": policy["items_insured"],
+            "line_of_business": policy["line_of_business"],
             "claim_reference": claim_reference,
             "insured_name": policy["insured_name"],
             "policy_start_date": policy_start.strftime("%Y-%m-%d"),
