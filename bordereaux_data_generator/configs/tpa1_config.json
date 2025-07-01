@@ -9,6 +9,10 @@
         "output_name": "policy_ref",
         "type": "string"
       },
+      "line_of_business": {
+        "output_name": "business_line",
+        "type": "string"
+      },
       "months_insured": {
         "output_name": "insured_months",
         "type": "integer"
