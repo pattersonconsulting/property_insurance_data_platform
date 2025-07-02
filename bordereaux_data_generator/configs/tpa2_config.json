@@ -59,6 +59,11 @@
         "type": "decimal",
         "precision": 2
       },
+      "annual_premium": {
+        "output_name": "AnnualPremium",
+        "type": "decimal",
+        "precision": 2
+      },
       "policy_start_date": {
         "output_name": "PolicyStartDate",
         "type": "date",

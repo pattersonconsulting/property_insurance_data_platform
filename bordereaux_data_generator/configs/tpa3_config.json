@@ -48,6 +48,11 @@
         "output_name": "PERIL",
         "type": "string"
       },
+      "annual_premium": {
+        "output_name": "ANNUAL_PREMIUM_AMT",
+        "type": "decimal",
+        "precision": 2
+      },
       "claim_status": {
         "output_name": "current_status",
         "type": "string"

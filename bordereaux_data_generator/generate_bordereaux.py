@@ -46,13 +46,14 @@ def get_built_in_default_config():
         "schema": {
             "fields": {
                 "policy_number": {"output_name": "policy_number", "type": "string"},
+                "claim_reference": {"output_name": "claim_reference", "type": "string"},
+                "annual_premium": {"output_name": "annual_premium", "type": "decimal", "precision": 2},
                 "months_insured": {"output_name": "months_insured", "type": "integer"},
                 "has_claims": {"output_name": "has_claims", "type": "boolean"},
                 "items_insured": {"output_name": "items_insured", "type": "integer"},
                 "line_of_business": {"output_name": "line_of_business", "type": "string"},
                 "state": {"output_name": "state", "type": "string"},
                 "geographic_location": {"output_name": "geographic_location", "type": "string"},
-                "claim_reference": {"output_name": "claim_reference", "type": "string"},
                 "insured_name": {"output_name": "insured_name", "type": "string"},
                 "policy_start_date": {"output_name": "policy_start_date", "type": "date", "format": "%Y-%m-%d"},
                 "date_of_loss": {"output_name": "date_of_loss", "type": "date", "format": "%Y-%m-%d"},
@@ -84,7 +85,8 @@ def generate_data(num_records, config):
     policies = []
 
     # Define US states with geographic regions
-    # Define US states with geographic regions
+    # TODO: Darren Clark - State assignment is random. Logic for geographic specific
+    # claim restrictions (e.g., no hurricanes in landlocked states) is not implemented
     states_by_region = {
         "Northeast": ["ME", "NH", "VT", "MA", "RI", "CT", "NY", "NJ", "PA", "DE", "MD"],
         "Southeast": ["VA", "WV", "KY", "NC", "SC", "GA", "FL", "TN", "AL", "MS", "AR", "LA"],
@@ -130,6 +132,30 @@ def generate_data(num_records, config):
         state = location_data["state"]
         geographic_location = location_data["geographic_location"]
         
+        # Generate annual premium based on line of business
+        premium_ranges = {
+            "Homeowners": (1500, 8000),
+            "Auto Insurance": (1800, 4200),
+            "Renters Insurance": (120, 480),
+            "Life Insurance": (300, 5280),
+            "Umbrella/Excess Liability": (200, 800),
+            "Business Insurance": (600, 15000),
+            "Commercial Auto": (1200, 6000),
+            "General Liability": (400, 3600),
+            "Workers Compensation": (500, 12000),
+            "Professional Liability": (400, 8000),
+            "Commercial Rental Property": (2000, 8000),
+            "Cyber Insurance": (500, 8000),
+            "Flood": (400, 2000),
+            "Rental Property": (1200, 4000),
+            "E&O": (400, 3000),
+            "Inland Marine Insurance": (300, 3000),
+            "Boat Insurance": (300, 2500)
+        }
+        
+        min_premium, max_premium = premium_ranges[line_of_business]
+        annual_premium = round(random.uniform(min_premium, max_premium), 2)
+
         policies.append({
             "policy_number": policy_number,
             "policy_start": policy_start,
@@ -139,6 +165,7 @@ def generate_data(num_records, config):
             "geographic_location": geographic_location,
             "items_insured": items_insured,
             "claim_propensity": claim_propensity,
+            "annual_premium": annual_premium,
             "insured_name": f"Company {1000 + i}"  # Simple company name
         })
     
@@ -337,6 +364,7 @@ def generate_data(num_records, config):
                 "line_of_business": policy["line_of_business"],
                 "state": policy["state"],
                 "geographic_location": policy["geographic_location"],
+                "annual_premium": policy["annual_premium"],
                 
                 # Bordereaux-specific fields
                 "claim_reference": claim_reference,
@@ -455,6 +483,7 @@ def generate_data(num_records, config):
             "line_of_business": policy["line_of_business"],
             "state": policy["state"],
             "geographic_location": policy["geographic_location"],
+            "annual_premium": policy["annual_premium"],
             "claim_reference": claim_reference,
             "insured_name": policy["insured_name"],
             "policy_start_date": policy_start.strftime("%Y-%m-%d"),

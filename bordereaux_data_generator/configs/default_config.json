@@ -9,6 +9,15 @@
         "output_name": "policy_number",
         "type": "string"
       },
+      "claim_reference": {
+        "output_name": "claim_reference",
+        "type": "string"
+      },
+      "annual_premium": {
+        "output_name": "annual_premium",
+        "type": "decimal",
+        "precision": 2
+      },
       "months_insured": {
         "output_name": "months_insured",
         "type": "integer"
@@ -31,10 +40,6 @@
       },
       "geographic_location": {
         "output_name": "geographic_location",
-        "type": "string"
-      },
-      "claim_reference": {
-        "output_name": "claim_reference",
         "type": "string"
       },
       "insured_name": {
