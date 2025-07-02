@@ -13,6 +13,14 @@
         "output_name": "policy_number",
         "type": "string"
       },
+      "state": {
+      "output_name": "POLICY_STATE",
+      "type": "string"
+      },
+      "geographic_location": {
+      "output_name": "GEOGRAPHIC_REGION",
+      "type": "string"
+      },
       "policy_start_date": {
         "output_name": "policy_inception_date",
         "type": "date",
