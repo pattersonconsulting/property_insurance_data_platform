@@ -21,6 +21,11 @@
         "output_name": "geographic_region",
         "type": "string"
       },
+      "annual_premium": {
+        "output_name": "premium_annual",
+        "type": "decimal",
+        "precision": 2
+      },
       "months_insured": {
         "output_name": "insured_months",
         "type": "integer"
