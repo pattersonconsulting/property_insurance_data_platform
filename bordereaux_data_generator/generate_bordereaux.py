@@ -102,7 +102,7 @@ def generate_data(num_records, config):
                 "Renters Insurance", "Life Insurance", "Flood", "Rental Property", 
                 "Umbrella/Excess Liability", "Commercial Rental Property", "Cyber Insurance", 
                 "E&O", "Inland Marine Insurance", "Boat Insurance"],
-            weights=[0.30, 0.22, 0.16, 0.08, 0.07, 0.06, 0.04, 0.03, 0.03, 0.02, 0.02, 
+            weights=[0.30, 0.22, 0.16, 0.08, 0.07, 0.06, 0.04, 0.03, 0.01, 0.02, 0.02, 
                     0.02, 0.01, 0.01, 0.01, 0.01, 0.01]
         )[0]
         
@@ -124,9 +124,77 @@ def generate_data(num_records, config):
     claim_statuses = ["Open", "Closed", "Pending", "Reopened", "In Litigation"]
     status_weights = [0.3, 0.5, 0.1, 0.05, 0.05] # Realistic distribution
 
-    # Define Loss Types
-    loss_types = ["Fire", "Water Damage", "Theft", "Liability", "Property Damage", 
-                 "Business Interruption", "Natural Disaster", "Other"]
+    # Define Loss Types by Line of Business with realistic distributions
+    loss_types_by_lob = {
+        "Homeowners": {
+            "loss_types": ["Wind Damage", "Hail Damage", "Water Damage", "Fire Damage", "Theft"],
+            "weights": [0.25, 0.25, 0.25, 0.15, 0.10]
+        },
+        "Auto Insurance": {
+            "loss_types": ["Single Vehicle Collision", "Multi Vehicle Collision", "Comprehensive", "Windshield", "Pedestrian Strike", "Hit and Run"],
+            "weights": [0.35, 0.30, 0.20, 0.08, 0.01, 0.04]
+        },
+        "Business Insurance": {
+            "loss_types": ["Theft", "Property Damage", "Fire Damage", "Water Damage", "Liability Claims", "Business Interruption", "Equipment Breakdown"],
+            "weights": [0.32, 0.20, 0.15, 0.12, 0.11, 0.06, 0.04]
+        },
+        "Commercial Auto": {
+            "loss_types": ["Fleet Collision", "Commercial Vehicle Theft", "Cargo Damage"],
+            "weights": [0.55, 0.25, 0.20]
+        },
+        "General Liability": {
+            "loss_types": ["Product Liability", "Property Damage", "Personal Injury", "Advertising Injury"],
+            "weights": [0.40, 0.30, 0.20, 0.10]
+        },
+        "Workers Compensation": {
+            "loss_types": ["Workplace Injury", "Repetitive Strain"],
+            "weights": [0.70, 0.30]
+        },
+        "Professional Liability": {
+            "loss_types": ["Professional Negligence", "Breach of Contract", "Failure to Deliver", "Misrepresentation"],
+            "weights": [0.50, 0.25, 0.15, 0.10]
+        },
+        "Renters Insurance": {
+            "loss_types": ["Personal Property Theft", "Water Damage", "Fire Damage"],
+            "weights": [0.50, 0.30, 0.20]
+        },
+        "Life Insurance": {
+            "loss_types": ["Natural Death", "Accidental Death"],
+            "weights": [0.90, 0.10]
+        },
+        "Flood": {
+            "loss_types": ["Flash Flooding"],
+            "weights": [1.00]
+        },
+        "Rental Property": {
+            "loss_types": ["Tenant Damage", "Fire Damage", "Water Damage", "Theft", "Loss of Rent", "Liability Claims"],
+            "weights": [0.30, 0.20, 0.18, 0.15, 0.10, 0.07]
+        },
+        "Umbrella/Excess Liability": {
+            "loss_types": ["Premises Liability", "Personal Injury", "Property Damage"],
+            "weights": [0.50, 0.30, 0.20]
+        },
+        "Commercial Rental Property": {
+            "loss_types": ["Tenant Vandalism", "Fire Damage", "Water Damage", "Theft", "Liability Claims", "Loss of Income"],
+            "weights": [0.25, 0.20, 0.18, 0.15, 0.12, 0.10]
+        },
+        "Cyber Insurance": {
+            "loss_types": ["Data Breach", "Ransomware", "Business Interruption"],
+            "weights": [0.45, 0.30, 0.25]
+        },
+        "E&O": {
+            "loss_types": ["Professional Negligence", "Failure to Perform", "Misrepresentation", "Breach of Duty", "Inadequate Work"],
+            "weights": [0.45, 0.25, 0.15, 0.10, 0.05]
+        },
+        "Inland Marine Insurance": {
+            "loss_types": ["Equipment Theft", "Equipment Misplacement", "Accidental Damage"],
+            "weights": [0.50, 0.30, 0.20]
+        },
+        "Boat Insurance": {
+            "loss_types": ["Boat Collision", "Boat Theft", "Fire Damage"],
+            "weights": [0.60, 0.25, 0.15]
+        }
+    }
     
     # Generate claims for each policy based on its propensity
     for policy in policies:
@@ -211,8 +279,13 @@ def generate_data(num_records, config):
             else:
                 claim_close_date = None  # Open claims don't have a close date
             
-            # Loss type
-            loss_type = random.choice(loss_types)
+            # Loss type based on line of business
+            lob_loss_data = loss_types_by_lob[policy["line_of_business"]]
+            loss_type = random.choices(
+                lob_loss_data["loss_types"], 
+                weights=lob_loss_data["weights"], 
+                k=1
+            )[0]
             
             # Financial amounts - gamma distribution for realistic claim sizes
             total_incurred = round(random.gammavariate(2, 10000), 2)
@@ -328,7 +401,14 @@ def generate_data(num_records, config):
         else:
             claim_close_date = None
         
-        loss_type = random.choice(loss_types)
+        # Loss type based on line of business
+        lob_loss_data = loss_types_by_lob[policy["line_of_business"]]
+        loss_type = random.choices(
+            lob_loss_data["loss_types"], 
+            weights=lob_loss_data["weights"], 
+            k=1
+        )[0]
+
         total_incurred = round(random.gammavariate(2, 10000), 2)
         
         if claim_status == "Closed":
