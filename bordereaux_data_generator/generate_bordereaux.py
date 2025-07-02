@@ -50,6 +50,8 @@ def get_built_in_default_config():
                 "has_claims": {"output_name": "has_claims", "type": "boolean"},
                 "items_insured": {"output_name": "items_insured", "type": "integer"},
                 "line_of_business": {"output_name": "line_of_business", "type": "string"},
+                "state": {"output_name": "state", "type": "string"},
+                "geographic_location": {"output_name": "geographic_location", "type": "string"},
                 "claim_reference": {"output_name": "claim_reference", "type": "string"},
                 "insured_name": {"output_name": "insured_name", "type": "string"},
                 "policy_start_date": {"output_name": "policy_start_date", "type": "date", "format": "%Y-%m-%d"},
@@ -80,6 +82,23 @@ def generate_data(num_records, config):
     # First, generate a pool of policies
     num_policies = max(10, num_records // 2)
     policies = []
+
+    # Define US states with geographic regions
+    # Define US states with geographic regions
+    states_by_region = {
+        "Northeast": ["ME", "NH", "VT", "MA", "RI", "CT", "NY", "NJ", "PA", "DE", "MD"],
+        "Southeast": ["VA", "WV", "KY", "NC", "SC", "GA", "FL", "TN", "AL", "MS", "AR", "LA"],
+        "Midwest": ["OH", "MI", "IN", "IL", "WI", "MN", "IA", "MO", "ND", "SD", "NE", "KS"],
+        "Southwest": ["CA","TX", "OK", "NM", "AZ"],
+        "Northwest": ["MT", "ID", "WY", "CO", "UT", "NV", "WA", "OR", "AK", "HI"]
+    }
+
+
+    # Create flat list of all states with their regions for easy selection
+    all_states = []
+    for region, state_list in states_by_region.items():
+        for state in state_list:
+            all_states.append({"state": state, "geographic_location": region})
     
     for i in range(num_policies):
         policy_number = f"POL{1000 + i}"
@@ -105,12 +124,19 @@ def generate_data(num_records, config):
             weights=[0.30, 0.22, 0.16, 0.08, 0.07, 0.06, 0.04, 0.03, 0.01, 0.02, 0.02, 
                     0.02, 0.01, 0.01, 0.01, 0.01, 0.01]
         )[0]
+
+        # Assign geographic location and state
+        location_data = random.choice(all_states)
+        state = location_data["state"]
+        geographic_location = location_data["geographic_location"]
         
         policies.append({
             "policy_number": policy_number,
             "policy_start": policy_start,
             "months_insured": months_insured,
             "line_of_business": line_of_business,
+            "state": state,
+            "geographic_location": geographic_location,
             "items_insured": items_insured,
             "claim_propensity": claim_propensity,
             "insured_name": f"Company {1000 + i}"  # Simple company name
@@ -309,6 +335,8 @@ def generate_data(num_records, config):
                 "has_claims": True,  # Since we're generating claims
                 "items_insured": policy["items_insured"],
                 "line_of_business": policy["line_of_business"],
+                "state": policy["state"],
+                "geographic_location": policy["geographic_location"],
                 
                 # Bordereaux-specific fields
                 "claim_reference": claim_reference,
@@ -425,6 +453,8 @@ def generate_data(num_records, config):
             "has_claims": True,
             "items_insured": policy["items_insured"],
             "line_of_business": policy["line_of_business"],
+            "state": policy["state"],
+            "geographic_location": policy["geographic_location"],
             "claim_reference": claim_reference,
             "insured_name": policy["insured_name"],
             "policy_start_date": policy_start.strftime("%Y-%m-%d"),

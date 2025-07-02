@@ -72,6 +72,14 @@
         "output_name": "ItemsInsured",
         "type": "integer"
       },
+      "state": {
+        "output_name": "PolicyState",
+        "type": "string"
+      },
+      "geographic_location": {
+        "output_name": "GeographicLocation",
+        "type": "string"
+      },
       "has_claims": {
         "output_name": "HasClaims",
         "type": "boolean"

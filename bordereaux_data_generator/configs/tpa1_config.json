@@ -13,6 +13,14 @@
         "output_name": "business_line",
         "type": "string"
       },
+      "state": {
+        "output_name": "policy_state",
+        "type": "string"
+      },
+      "geographic_location": {
+        "output_name": "geographic_region",
+        "type": "string"
+      },
       "months_insured": {
         "output_name": "insured_months",
         "type": "integer"

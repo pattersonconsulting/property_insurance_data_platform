@@ -25,6 +25,14 @@
         "output_name": "line_of_business",
         "type": "string"
       },
+      "state": {
+        "output_name": "state",
+        "type": "string"
+      },
+      "geographic_location": {
+        "output_name": "geographic_location",
+        "type": "string"
+      },
       "claim_reference": {
         "output_name": "claim_reference",
         "type": "string"
